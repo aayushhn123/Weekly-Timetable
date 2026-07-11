@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>DS Sem XI — Timetable</title>
+<title>Timetable</title>
 <style>
   :root{
     --ink:#1c2321;
@@ -146,17 +146,20 @@
     box-shadow:var(--shadow);
   }
   .slot .time{
-    flex:0 0 88px;
-    padding:12px 8px;
+    flex:0 0 76px;
+    padding:10px 6px;
     font-family:'Courier New',monospace;
-    font-size:13.5px;
     font-weight:700;
     color:#333;
     border-right:1px solid var(--line);
-    display:flex;align-items:center;justify-content:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
     text-align:center;
     background:var(--paper2);
+    line-height:1.3;
   }
+  .slot .time .t-start{font-size:14px;}
+  .slot .time .t-sep{font-size:9px;color:#888;margin:1px 0;}
+  .slot .time .t-end{font-size:14px;}
   .slot .content{
     flex:1;
     padding:12px 14px;
@@ -322,7 +325,7 @@
 <div class="wrap">
 
   <header class="top">
-    <div class="eyebrow">B.Tech Integrated Data Science — Sem XI · Manoor Campus</div>
+    <div class="eyebrow">B.Tech Integrated Data Science — Sem XI · Mumbai Campus</div>
     <h1>Weekly Timetable</h1>
     <div class="sub">w.e.f. 13 July 2026 · Rev 0</div>
   </header>
@@ -485,10 +488,10 @@ function mergeBlocks(arr){
   return blocks;
 }
 
-function timeRangeLabel(startIdx, endIdx){
+function timeRangeParts(startIdx, endIdx){
   const startLabel = TIMES[startIdx].split(" - ")[0];
   const endLabel = TIMES[endIdx].split(" - ")[1];
-  return `${startLabel} - ${endLabel}`;
+  return {startLabel, endLabel};
 }
 
 function renderAgenda(){
@@ -513,7 +516,8 @@ function renderAgenda(){
     div.className = "slot " + slotType(parsed, day, start);
     const timeDiv = document.createElement("div");
     timeDiv.className = "time";
-    timeDiv.textContent = timeRangeLabel(start, end);
+    const {startLabel, endLabel} = timeRangeParts(start, end);
+    timeDiv.innerHTML = `<span class="t-start">${startLabel}</span><span class="t-sep">to</span><span class="t-end">${endLabel}</span>`;
     const content = document.createElement("div");
     content.className = "content";
     if(parsed.type==="holiday"){
