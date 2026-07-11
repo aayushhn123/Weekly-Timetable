@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>DS Sem XI — Timetable</title>
+<style>
+  :root{
+    --ink:#1c2321;
+    --paper:#f6f4ee;
+    --paper2:#ece8dd;
+    --line: #d8d2c2;
+    --accent:#3a6b5e;      /* deep pine */
+    --accent2:#c26b3e;     /* rust/clay for class-specific */
+    --accent3:#8a6d3b;     /* ochre for extra */
+    --break:#b8b0a0;
+    --holiday:#a85c50;
+    --free:#eae6da;
+    --white:#fffdf9;
+    --shadow: 0 1px 0 rgba(0,0,0,0.04);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family: 'Iowan Old Style','Palatino Linotype', Georgia, serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px;}
+
+  header.top{
+    display:flex;flex-direction:column;gap:4px;
+    padding-bottom:16px;margin-bottom:18px;
+    border-bottom:2px solid var(--ink);
+  }
+  .eyebrow{
+    font-family: 'Courier New', monospace;
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;
+  }
+  h1{
+    font-size:clamp(1.5rem,4vw,2.1rem);
+    margin:2px 0 0;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    font-family:'Courier New',monospace;
+    font-size:12.5px;color:#555; margin-top:4px;
+  }
+
+  /* Section toggle */
+  .toggle{
+    display:flex;gap:0;
+    border:1.5px solid var(--ink);
+    border-radius:999px;
+    overflow:hidden;
+    width:max-content;
+    margin:16px 0 20px;
+    background:var(--white);
+  }
+  .toggle button{
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    padding:9px 22px;
+    border:none;
+    background:transparent;
+    color:var(--ink);
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .toggle button.active{
+    background:var(--ink);
+    color:var(--paper);
+  }
+
+  /* Day pills for mobile nav */
+  .daynav{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-bottom:6px;
+    margin-bottom:14px;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .daynav::-webkit-scrollbar{display:none;}
+  .daynav button{
+    flex:0 0 auto;
+    font-family:'Courier New',monospace;
+    font-size:12px;
+    letter-spacing:.03em;
+    padding:8px 14px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--white);
+    color:var(--ink);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .daynav button.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:var(--white);
+  }
+  .daynav button[disabled]{
+    opacity:.4;
+  }
+
+  /* Today badge */
+  .todaytag{
+    display:inline-block;
+    font-family:'Courier New',monospace;
+    font-size:10px;
+    background:var(--accent2);
+    color:white;
+    padding:1px 6px;
+    border-radius:5px;
+    margin-left:6px;
+    vertical-align:middle;
+    letter-spacing:.05em;
+  }
+
+  /* ===== Mobile: agenda/day view ===== */
+  .day-view{display:block;}
+  .day-header{
+    font-size:1.15rem;font-weight:700;margin:2px 0 12px;
+    display:flex;align-items:baseline;gap:6px;
+  }
+  .day-window{
+    font-family:'Courier New',monospace;font-size:12px;color:#666;font-weight:400;
+  }
+  .agenda{
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .slot{
+    display:flex;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--white);
+    overflow:hidden;
+    box-shadow:var(--shadow);
+  }
+  .slot .time{
+    flex:0 0 78px;
+    padding:12px 8px;
+    font-family:'Courier New',monospace;
+    font-size:11.5px;
+    color:#555;
+    border-right:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    text-align:center;
+    background:var(--paper2);
+  }
+  .slot .content{
+    flex:1;
+    padding:12px 14px;
+  }
+  .slot .subj{
+    font-weight:700;font-size:15px;
+  }
+  .slot .meta{
+    font-family:'Courier New',monospace;
+    font-size:11.5px;
+    color:#555;
+    margin-top:3px;
+  }
+  .slot.type-common{border-left:5px solid var(--accent);}
+  .slot.type-specific{border-left:5px solid var(--accent2);}
+  .slot.type-break{border-left:5px solid var(--break); background:var(--free);}
+  .slot.type-break .subj{color:#6b6558;}
+  .slot.type-holiday{border-left:5px solid var(--holiday); background:#f4e9e7;}
+  .slot.type-free .subj{color:#999;font-weight:400;font-style:italic;}
+  .slot.type-extra{border-left:5px solid var(--accent3);}
+
+  .empty-note{
+    font-family:'Courier New',monospace;
+    font-size:13px;color:#888;text-align:center;padding:30px 0;
+  }
+
+  /* ===== Desktop grid ===== */
+  .grid-view{display:none;}
+  .grid-scroll{overflow-x:auto;border:1px solid var(--line); border-radius:var(--radius); background:var(--white);}
+  table.grid{
+    border-collapse:separate;
+    border-spacing:0;
+    width:100%;
+    min-width:820px;
+  }
+  table.grid th, table.grid td{
+    border-right:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:0;
+    vertical-align:top;
+  }
+  table.grid th{
+    border-top:1px solid var(--line);
+  }
+  table.grid th:first-child, table.grid td:first-child{
+    border-left:1px solid var(--line);
+  }
+  table.grid th{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Courier New',monospace;
+    font-size:12px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    padding:10px 8px;
+    text-align:center;
+    position:sticky;top:0;
+  }
+  table.grid th.timecol{
+    width:90px;
+    position:sticky;
+    left:0;
+    z-index:3;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.08);
+  }
+  table.grid td.timecell{
+    font-family:'Courier New',monospace;
+    font-size:11px;
+    color:#666;
+    text-align:center;
+    padding:8px 4px;
+    background:var(--paper2);
+    white-space:nowrap;
+    position:sticky;
+    left:0;
+    z-index:2;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.08);
+  }
+  .cell-inner{
+    min-height:64px;
+    padding:8px 9px;
+    font-size:12.5px;
+    display:flex;flex-direction:column;justify-content:center;gap:2px;
+    box-sizing:border-box;
+  }
+  .cell-inner .csubj{font-weight:700;}
+  .cell-inner .cmeta{font-family:'Courier New',monospace;font-size:10.5px;color:#555;}
+  td.type-common{border-left:4px solid var(--accent);}
+  td.type-specific{border-left:4px solid var(--accent2);}
+  td.type-break{border-left:4px solid var(--break); background:var(--free);}
+  td.type-break .csubj{color:#6b6558;font-weight:600;font-size:11.5px;}
+  td.type-holiday{border-left:4px solid var(--holiday); background:#f4e9e7;}
+  td.type-free .cell-inner .csubj{color:#bbb;}
+  td.type-extra{border-left:4px solid var(--accent3);}
+  td.today-col{background:#fbf6ea;}
+
+  @media (min-width: 860px){
+    .daynav{display:none;}
+  }
+  .day-view.hidden, .grid-view.hidden{display:none !important;}
+  .day-view.shown{display:block;}
+  .grid-view.shown{display:block;}
+
+  .toggle-row{
+    display:flex;flex-wrap:wrap;gap:10px;
+    margin:16px 0 20px;
+  }
+  .toggle-row .toggle{margin:0;}
+
+  /* Legend + faculty */
+  .legend-wrap{
+    margin-top:28px;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:18px;
+  }
+  @media (min-width:700px){
+    .legend-wrap{grid-template-columns:1fr 1fr;}
+  }
+  .card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+  }
+  .card h3{
+    margin:0 0 10px;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-family:'Courier New',monospace;
+    color:var(--accent);
+  }
+  .legend-item{
+    display:flex;align-items:center;gap:8px;
+    font-size:13px;padding:4px 0;
+  }
+  .swatch{width:12px;height:12px;border-radius:3px;flex:0 0 auto;}
+  .sw-common{background:var(--accent);}
+  .sw-specific{background:var(--accent2);}
+  .sw-break{background:var(--break);}
+  .sw-extra{background:var(--accent3);}
+  .sw-holiday{background:var(--holiday);}
+  .sw-free{background:#ccc;}
+
+  table.faculty{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.faculty th{
+    text-align:left;font-family:'Courier New',monospace;font-size:10.5px;
+    text-transform:uppercase;color:#888;padding:4px 6px;border-bottom:1px solid var(--line);
+  }
+  table.faculty td{padding:6px 6px;border-bottom:1px solid #eee;}
+  table.faculty td.code{font-weight:700;color:var(--accent);}
+
+  footer{
+    text-align:center;font-family:'Courier New',monospace;
+    font-size:11px;color:#999;margin-top:34px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">B.Tech Integrated Data Science — Sem XI · Manoor Campus</div>
+    <h1>Weekly Timetable</h1>
+    <div class="sub">w.e.f. 13 July 2026 · Rev 0</div>
+  </header>
+
+  <div class="toggle-row">
+    <div class="toggle" id="sectionToggle">
+      <button data-section="E1" class="active">Section E1</button>
+      <button data-section="E2">Section E2</button>
+    </div>
+    <div class="toggle" id="viewToggle">
+      <button data-view="day" class="active">Day view</button>
+      <button data-view="week">Week view</button>
+    </div>
+  </div>
+
+  <div class="daynav" id="dayNav"></div>
+
+  <!-- MOBILE AGENDA VIEW -->
+  <div class="day-view" id="dayView">
+    <div class="day-header" id="dayHeader"></div>
+    <div class="agenda" id="agenda"></div>
+  </div>
+
+  <!-- DESKTOP GRID VIEW -->
+  <div class="grid-view" id="gridView">
+    <div class="grid-scroll">
+      <table class="grid" id="gridTable"></table>
+    </div>
+  </div>
+
+  <div class="legend-wrap">
+    <div class="card">
+      <h3>Legend</h3>
+      <div class="legend-item"><span class="swatch sw-common"></span>Common lecture (shared with other section)</div>
+      <div class="legend-item"><span class="swatch sw-specific"></span>Class-specific lecture (this section only)</div>
+      <div class="legend-item"><span class="swatch sw-break"></span>Break</div>
+      <div class="legend-item"><span class="swatch sw-extra"></span>Reserved for extra lecture</div>
+      <div class="legend-item"><span class="swatch sw-holiday"></span>Holiday</div>
+      <div class="legend-item"><span class="swatch sw-free"></span>Free / no lecture</div>
+    </div>
+    <div class="card">
+      <h3>Subjects &amp; Faculty</h3>
+      <table class="faculty">
+        <thead><tr><th>Code</th><th>Subject</th><th>Faculty</th></tr></thead>
+        <tbody id="facultyBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>Tap a day above on phone · scroll the grid sideways on wider screens</footer>
+</div>
+
+<script>
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const TIMES = ["8:00 - 9:00","9:00 - 10:00","10:00 - 11:00","11:00 - 12:00","12:00 - 1:00","1:00 - 2:00","2:00 - 3:00","3:00 - 4:00","4:00 - 5:00","5:00 - 6:00"];
+
+const FACULTY = [
+  ["NNDL","Neural Networks & Deep Learning","Prof. Shweta Mishra"],
+  ["SNLP","Speech & NLP","Prof. Archana Lakhe"],
+  ["BDA","Big Data Analytics","Prof. Saurabh Pandit"],
+  ["MLOps","MLOps","Dr. Vanita Mane"],
+  ["ADBMS","Adv. Database Mgmt Systems","Prof. Jaya Jeswani"],
+  ["DevOps","DevOps","Prof. Sanjeev Singh"],
+  ["OE","Open Elective","—"]
+];
+
+// raw cell -> {subj, room, faculty, type}
+function parseCell(raw){
+  if(raw === undefined || raw === null || raw === "—" || raw === "-") return {type:"none"};
+  if(raw==="HOLIDAY") return {type:"holiday", subj:"Holiday"};
+  if(raw==="BREAK"){
+    return {type:"break", subj:"Break"};
+  }
+  const parts = raw.split("\n");
+  const subj = parts[0];
+  const room = parts[1] || "";
+  const faculty = parts[2] || "";
+  return {type:"lecture", subj, room, faculty};
+}
+
+// Day windows (start/end time as printed on each section's sheet)
+const WINDOWS = {
+  E1: {
+    Monday:"08:00 AM – 06:00 PM", Tuesday:"08:00 AM – 02:00 PM", Wednesday:"08:00 AM – 05:00 PM",
+    Thursday:"HOLIDAY", Friday:"09:00 AM – 02:00 PM", Saturday:"02:00 PM – 06:00 PM", Sunday:"HOLIDAY"
+  },
+  E2: {
+    Monday:"08:00 AM – 06:00 PM", Tuesday:"08:00 AM – 02:00 PM", Wednesday:"08:00 AM – 05:00 PM",
+    Thursday:"HOLIDAY", Friday:"09:00 AM – 12:00 PM", Saturday:"02:00 PM – 06:00 PM", Sunday:"HOLIDAY"
+  }
+};
+
+// Data transcribed row-by-row from the section screenshots (rows = TIMES index 0..9)
+const DATA = {
+  E1: {
+    Monday:    ["OE\nRoom 5", "OE\nRoom 5", "NNDL\nCR-509\nShweta", "NNDL\nCR-509\nShweta", "BREAK", "ADBMS\nCR-801\nJaya", "ADBMS\nCR-801\nJaya", "BREAK", "MLOps\nCL-603\nVanita", "MLOps\nCL-603\nVanita"],
+    Tuesday:   ["NNDL\nCL-702\nShweta", "NNDL\nCL-702\nShweta", "SNLP\nCR-505\nArchana", "SNLP\nCR-505\nArchana", "ADBMS\nCL-706\nJaya", "ADBMS\nCL-706\nJaya", null, null, null, null],
+    Wednesday: ["OE\nRoom 5", "OE\nRoom 5", "MLOps\nCR-509\nVanita", "MLOps\nCR-509\nVanita", "BREAK", "BDA\nCR-505\nSaurabh", "BDA\nCR-505\nSaurabh", "SNLP\nBD Lab (DJ)\nArchana", "SNLP\nBD Lab (DJ)\nArchana", null],
+    Thursday:  ["HOLIDAY", null, null, null, null, null, null, null, null, null],
+    Friday:    [null, "OE\nRoom 5", null, null, "BDA\nCL-603\nSaurabh", "BDA\nCL-603\nSaurabh", null, null, null, null],
+    Saturday:  [null, null, null, null, null, null, "DevOps\nCC-702\nSanjeev", "DevOps\nCC-702\nSanjeev", "DevOps\nCC-702\nSanjeev", "DevOps\nCC-702\nSanjeev"],
+    Sunday:    ["HOLIDAY", null, null, null, null, null, null, null, null, null]
+  },
+  E2: {
+    Monday:    ["OE\nRoom 5", "OE\nRoom 5", "NNDL\nCR-509\nShweta", "NNDL\nCR-509\nShweta", "BREAK", "ADBMS\nCR-801\nJaya", "ADBMS\nCR-801\nJaya", "BREAK", "SNLP\nCL-703\nArchana", "SNLP\nCL-703\nArchana"],
+    Tuesday:   ["ADBMS\nCL-703\nJaya", "ADBMS\nCL-703\nJaya", "SNLP\nCR-505\nArchana", "SNLP\nCR-505\nArchana", "NNDL\nCL-702\nShweta", "NNDL\nCL-702\nShweta", null, null, null, null],
+    Wednesday: ["OE\nRoom 5", "OE\nRoom 5", "MLOps\nCR-509\nVanita", "MLOps\nCR-509\nVanita", "BREAK", "BDA\nCR-505\nSaurabh", "BDA\nCR-505\nSaurabh", "MLOps\nCL-703\nVanita", "MLOps\nCL-703\nVanita", null],
+    Thursday:  ["HOLIDAY", null, null, null, null, null, null, null, null, null],
+    Friday:    [null, "OE\nRoom 5", "BDA\nCR-509\nSaurabh", "BDA\nCR-509\nSaurabh", null, null, null, null, null, null],
+    Saturday:  [null, null, null, null, null, null, "DevOps\nCC-702\nSanjeev", "DevOps\nCC-702\nSanjeev", "DevOps\nCC-702\nSanjeev", "DevOps\nCC-702\nSanjeev"],
+    Sunday:    ["HOLIDAY", null, null, null, null, null, null, null, null, null]
+  }
+};
+
+// A slot is "common" only if E1 and E2 have the identical subject+room+faculty
+// at that exact day/time (i.e. it's genuinely a combined lecture). Otherwise specific.
+function classify(day, idx){
+  const a = DATA.E1[day][idx];
+  const b = DATA.E2[day][idx];
+  if(!a || !b) return "none";
+  if(a === "BREAK" || a === "HOLIDAY") return "none";
+  return a === b ? "common" : "specific";
+}
+
+let currentSection = "E1";
+let currentView = "day";
+let currentDayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay()-1; // Mon=0..Sun=6
+
+function buildDayNav(){
+  const nav = document.getElementById("dayNav");
+  nav.innerHTML = "";
+  const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay()-1;
+  DAYS.forEach((d,i)=>{
+    const btn = document.createElement("button");
+    btn.textContent = d.slice(0,3).toUpperCase();
+    if(i===currentDayIdx) btn.classList.add("active");
+    btn.onclick = ()=>{ currentDayIdx = i; render(); };
+    nav.appendChild(btn);
+  });
+}
+
+function slotType(parsed, day, idx){
+  if(parsed.type==="none") return "type-free";
+  if(parsed.type==="holiday") return "type-holiday";
+  if(parsed.type==="break") return "type-break";
+  return classify(day, idx)==="common" ? "type-common" : "type-specific";
+}
+
+// Collapse consecutive identical raw values into single blocks: [{raw, start, end}]
+function mergeBlocks(arr){
+  const blocks = [];
+  let i = 0;
+  while(i < arr.length){
+    const raw = arr[i];
+    let j = i;
+    while(j+1 < arr.length && arr[j+1] === raw) j++;
+    blocks.push({raw, start:i, end:j});
+    i = j+1;
+  }
+  return blocks;
+}
+
+function timeRangeLabel(startIdx, endIdx){
+  const startLabel = TIMES[startIdx].split(" - ")[0];
+  const endLabel = TIMES[endIdx].split(" - ")[1];
+  return `${startLabel} - ${endLabel}`;
+}
+
+function renderAgenda(){
+  const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay()-1;
+  const day = DAYS[currentDayIdx];
+  const win = WINDOWS[currentSection][day];
+  const header = document.getElementById("dayHeader");
+  header.innerHTML = day + (currentDayIdx===todayIdx ? '<span class="todaytag">TODAY</span>' : '')
+    + (win && win!=="HOLIDAY" ? `<span class="day-window">${win}</span>` : '');
+
+  const arr = DATA[currentSection][day];
+  const agenda = document.getElementById("agenda");
+  agenda.innerHTML = "";
+
+  const blocks = mergeBlocks(arr);
+  let any = false;
+  blocks.forEach(({raw, start, end})=>{
+    const parsed = parseCell(raw);
+    if(parsed.type==="none") return;
+    any = true;
+    const div = document.createElement("div");
+    div.className = "slot " + slotType(parsed, day, start);
+    const timeDiv = document.createElement("div");
+    timeDiv.className = "time";
+    timeDiv.textContent = timeRangeLabel(start, end);
+    const content = document.createElement("div");
+    content.className = "content";
+    if(parsed.type==="holiday"){
+      content.innerHTML = `<div class="subj">Holiday</div>`;
+    } else if(parsed.type==="break"){
+      content.innerHTML = `<div class="subj">Break</div>`;
+    } else {
+      content.innerHTML = `<div class="subj">${parsed.subj}</div><div class="meta">${parsed.room}${parsed.faculty ? " · " + parsed.faculty : ""}</div>`;
+    }
+    div.appendChild(timeDiv);
+    div.appendChild(content);
+    agenda.appendChild(div);
+  });
+
+  if(!any){
+    agenda.innerHTML = `<div class="empty-note">No lectures scheduled — enjoy the day off.</div>`;
+  }
+}
+
+function renderGrid(){
+  const table = document.getElementById("gridTable");
+  const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay()-1;
+  let html = "<thead><tr><th class='timecol'>Time</th>";
+  DAYS.forEach((d,i)=>{
+    html += `<th${i===todayIdx ? " style='background:#3a6b5e'" : ""}>${d}</th>`;
+  });
+  html += "</tr></thead><tbody>";
+
+  // Precompute merge blocks per day column
+  const dayBlocks = {};
+  DAYS.forEach(d=>{ dayBlocks[d] = mergeBlocks(DATA[currentSection][d]); });
+  // Map rowIdx -> block starting there, per day (skip rows that are mid-block continuation)
+  const startsAt = {};
+  DAYS.forEach(d=>{
+    startsAt[d] = {};
+    dayBlocks[d].forEach(b=>{ startsAt[d][b.start] = b; });
+  });
+  const coveredBy = {};
+  DAYS.forEach(d=>{
+    coveredBy[d] = new Array(TIMES.length).fill(false);
+    dayBlocks[d].forEach(b=>{
+      for(let r=b.start+1; r<=b.end; r++) coveredBy[d][r] = true;
+    });
+  });
+
+  TIMES.forEach((t,rowIdx)=>{
+    html += `<tr><td class="timecell">${t}</td>`;
+    DAYS.forEach((d,colIdx)=>{
+      if(coveredBy[d][rowIdx]) return; // part of a rowspan above, skip cell entirely
+      const block = startsAt[d][rowIdx];
+      const raw = block.raw;
+      const span = block.end - block.start + 1;
+      const parsed = parseCell(raw);
+      const cls = slotType(parsed, d, rowIdx) + (colIdx===todayIdx ? " today-col" : "");
+      let inner = "";
+      if(parsed.type==="none"){
+        inner = "";
+      } else if(parsed.type==="holiday"){
+        inner = `<div class="csubj">Holiday</div>`;
+      } else if(parsed.type==="break"){
+        inner = `<div class="csubj">Break</div>`;
+      } else {
+        inner = `<div class="csubj">${parsed.subj}</div><div class="cmeta">${parsed.room}${parsed.faculty ? " · "+parsed.faculty : ""}</div>`;
+      }
+      const rowspanAttr = span > 1 ? ` rowspan="${span}"` : "";
+      html += `<td class="${cls}"${rowspanAttr}><div class="cell-inner">${inner}</div></td>`;
+    });
+    html += "</tr>";
+  });
+  html += "</tbody>";
+  table.innerHTML = html;
+}
+
+function buildFaculty(){
+  const body = document.getElementById("facultyBody");
+  body.innerHTML = FACULTY.map(([code,name,fac])=>
+    `<tr><td class="code">${code}</td><td>${name}</td><td>${fac}</td></tr>`
+  ).join("");
+}
+
+function applyViewMode(){
+  const dayView = document.getElementById("dayView");
+  const gridView = document.getElementById("gridView");
+  const dayNav = document.getElementById("dayNav");
+  if(currentView === "day"){
+    dayView.classList.add("shown"); dayView.classList.remove("hidden");
+    gridView.classList.remove("shown"); gridView.classList.add("hidden");
+    dayNav.style.display = "";
+  } else {
+    gridView.classList.add("shown"); gridView.classList.remove("hidden");
+    dayView.classList.remove("shown"); dayView.classList.add("hidden");
+    dayNav.style.display = "none";
+  }
+}
+
+function render(){
+  buildDayNav();
+  renderAgenda();
+  renderGrid();
+  applyViewMode();
+}
+
+document.getElementById("sectionToggle").addEventListener("click", (e)=>{
+  const btn = e.target.closest("button");
+  if(!btn) return;
+  currentSection = btn.dataset.section;
+  document.querySelectorAll("#sectionToggle button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+});
+
+document.getElementById("viewToggle").addEventListener("click", (e)=>{
+  const btn = e.target.closest("button");
+  if(!btn) return;
+  currentView = btn.dataset.view;
+  document.querySelectorAll("#viewToggle button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+});
+
+buildFaculty();
+render();
+</script>
+</body>
+</html>
