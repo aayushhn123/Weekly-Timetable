@@ -304,6 +304,187 @@
   .slot.type-free .subj{color:#999;font-weight:400;font-style:italic;}
   .slot.type-extra{border-left:5px solid var(--accent3);}
 
+  /* Open Elective expandable */
+  .slot.type-oe{border-left:5px solid #6b5b95; cursor:pointer;}
+  .slot.type-oe .content{position:relative;}
+  .oe-hint{
+    font-family:'Courier New',monospace;
+    font-size:12px;
+    color:#6b5b95;
+    margin-top:6px;
+    font-weight:800;
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+  .slot.is-now .oe-hint{
+    color:#e8e2f7;
+  }
+  .slot.is-now .oe-panel{
+    border-top-color:rgba(255,255,255,0.3);
+  }
+  .oe-hint .chev{
+    display:inline-block;
+    transition:transform .2s ease;
+  }
+  .slot.type-oe.expanded .oe-hint .chev{transform:rotate(90deg);}
+  .oe-panel{
+    display:none;
+    margin-top:10px;
+    border-top:1px dashed var(--line);
+    padding-top:10px;
+    background:var(--white);
+    border-radius:8px;
+    padding:10px;
+    margin-left:-14px;
+    margin-right:-14px;
+    padding-left:14px;
+    padding-right:14px;
+  }
+  .slot.type-oe.expanded .oe-panel{display:block;}
+  .oe-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .oe-item{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    font-size:14px;
+    padding:9px 10px;
+    background:var(--paper2);
+    border-radius:6px;
+    border:1px solid var(--line);
+    position:relative;
+  }
+  .oe-item.is-fav{
+    background:#fdf6e8;
+    border-color:#c9a34a;
+    box-shadow:0 0 0 1px rgba(201,163,74,0.25);
+  }
+  .oe-item.is-master{
+    background:#fbeecb;
+    border-color:#a8842f;
+    box-shadow:0 0 0 2px rgba(168,132,47,0.35);
+  }
+  .oe-master-tag{
+    display:inline-block;
+    font-family:'Courier New',monospace;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.06em;
+    color:#5c4a17;
+    background:#f0d68a;
+    padding:2px 7px;
+    border-radius:5px;
+    margin-bottom:4px;
+    width:max-content;
+  }
+  .oe-crown{
+    position:absolute;
+    top:4px;
+    right:38px;
+    width:30px;
+    height:30px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    background:transparent;
+    cursor:pointer;
+    font-size:16px;
+    line-height:1;
+    opacity:.55;
+    padding:0;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .oe-crown:hover{opacity:1;}
+  .oe-master-badge{
+    font-family:'Courier New',monospace;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.06em;
+    color:#5c4a17;
+    background:#f0d68a;
+    padding:2px 7px;
+    border-radius:5px;
+  }
+  .oe-item .oe-name-row{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:6px;
+    padding-right:30px;
+  }
+  .oe-star{
+    position:absolute;
+    top:4px;
+    right:4px;
+    width:34px;
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    background:transparent;
+    cursor:pointer;
+    font-size:20px;
+    line-height:1;
+    color:#bbb;
+    padding:0;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .oe-item.is-fav .oe-star{color:#c9a34a;}
+  .oe-fav-divider{
+    font-family:'Courier New',monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    font-weight:800;
+    color:#8a7440;
+    margin:2px 0 2px;
+    padding-top:6px;
+  }
+  .oe-fav-divider:first-child{padding-top:0;}
+  .oe-item .oe-name{
+    font-weight:800;
+    color:var(--ink);
+    line-height:1.3;
+  }
+  .oe-item .oe-code{
+    font-family:'Courier New',monospace;
+    font-weight:800;
+    font-size:11px;
+    color:#4a3d69;
+    background:rgba(107,91,149,0.18);
+    padding:2px 6px;
+    border-radius:4px;
+    white-space:nowrap;
+  }
+  .oe-item .oe-fac{
+    font-family:'Courier New',monospace;
+    font-size:12px;
+    font-weight:700;
+    color:#3a3a3a;
+  }
+  td.type-oe{cursor:pointer;}
+  td.type-oe .cell-inner{position:relative;}
+  .oe-panel-grid{
+    display:none;
+    position:absolute;
+    top:calc(100% + 4px);
+    left:0;
+    z-index:10;
+    background:var(--white);
+    border:1.5px solid #6b5b95;
+    border-radius:8px;
+    padding:10px;
+    width:260px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.15);
+  }
+  td.type-oe.expanded .oe-panel-grid{display:block;}
+
   .empty-note{
     font-family:'Courier New',monospace;
     font-size:13px;color:#888;text-align:center;padding:30px 0;
@@ -388,6 +569,7 @@
   td.type-holiday{border-left:4px solid var(--holiday); background:#f4e9e7;}
   td.type-free .cell-inner .csubj{color:#bbb;}
   td.type-extra{border-left:4px solid var(--accent3);}
+  td.type-oe{border-left:4px solid #6b5b95;}
   td.today-col{background:#fbf6ea;}
   td.is-now{
     outline:2px solid var(--accent);
@@ -445,6 +627,7 @@
   .sw-extra{background:var(--accent3);}
   .sw-holiday{background:var(--holiday);}
   .sw-free{background:#ccc;}
+  .sw-oe{background:#6b5b95;}
 
   table.faculty{width:100%;border-collapse:collapse;font-size:12.5px;}
   table.faculty th{
@@ -609,6 +792,7 @@
       <h3>Legend</h3>
       <div class="legend-item"><span class="swatch sw-common"></span>Common lecture (shared with other section)</div>
       <div class="legend-item"><span class="swatch sw-specific"></span>Class-specific lecture (this section only)</div>
+      <div class="legend-item"><span class="swatch sw-oe"></span>Open Elective (tap to see shortlisted subjects)</div>
       <div class="legend-item"><span class="swatch sw-break"></span>Break</div>
       <div class="legend-item"><span class="swatch sw-extra"></span>Reserved for extra lecture</div>
       <div class="legend-item"><span class="swatch sw-holiday"></span>Holiday</div>
@@ -623,7 +807,7 @@
     </div>
   </div>
 
-  <footer>Tap a day above on phone · scroll the grid sideways on wider screens</footer>
+  <footer>Tap a day above on phone · scroll the grid sideways on wider screens · tap "Open Elective" cells to see shortlisted subjects</footer>
 </div>
 
 <script>
@@ -641,8 +825,116 @@ const FACULTY = [
   ["MLOps","MLOps","Dr. Vanita Mane"],
   ["ADBMS","Adv. Database Mgmt Systems","Prof. Jaya Jeswani"],
   ["DevOps","DevOps","Prof. Sanjeev Singh"],
-  ["OE","Open Elective","—"]
+  ["OE","Open Elective","see shortlist below"]
 ];
+
+// Shortlisted Open Electives (German dropped, Div. A dropped for the two dual-division ones)
+const OE_SHORTLIST = [
+  {name:"Contemporary Short Fiction", faculty:"Dr. Dipti Kulkarni", code:"CR 404"},
+  {name:"Film Appreciation", faculty:"Dr. Priteegandha Naik", code:"CR 402"},
+  {name:"Happiness at Work", faculty:"Dr. Priyal Panchal", code:"CR 502"},
+  {name:"Indian Knowledge Systems", faculty:"Dr. Chandan Maitrani", code:"CR 603"},
+  {name:"Introduction to Linguistics", faculty:"Dr. Ankita Bhowmick", code:"CR 406"},
+  {name:"Turning Data into Stories", faculty:"Dr. Anagha Sivsankaran", code:"CR 504"},
+  {name:"Technical Writing", faculty:"Nidhija Roy", code:"CR 405"},
+  {name:"Leading through Life Skills (Div. B)", faculty:"Dr. Dasika Chaitanya", code:"CR 607"},
+  {name:"Management through Movies (Div. B)", faculty:"Prof. Anand Desai", code:"CR 701"}
+];
+
+// Persisted favorite OE picks (localStorage so it survives closing the app,
+// unlike sessionStorage used elsewhere for one-time dismiss banners)
+const OE_FAV_KEY = "oeFavorites";
+const OE_MASTER_KEY = "oeMasterFavorite";
+function loadOEFavorites(){
+  try{
+    const raw = localStorage.getItem(OE_FAV_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch(e){ return new Set(); }
+}
+function saveOEFavorites(set){
+  try{ localStorage.setItem(OE_FAV_KEY, JSON.stringify(Array.from(set))); } catch(e){}
+}
+function loadOEMaster(){
+  try{ return localStorage.getItem(OE_MASTER_KEY) || null; } catch(e){ return null; }
+}
+function saveOEMaster(code){
+  try{
+    if(code) localStorage.setItem(OE_MASTER_KEY, code);
+    else localStorage.removeItem(OE_MASTER_KEY);
+  } catch(e){}
+}
+let oeFavorites = loadOEFavorites();
+let oeMaster = loadOEMaster(); // the single subject that takes over the OE card headline
+
+function getOEByCode(code){
+  return OE_SHORTLIST.find(o=>o.code===code) || null;
+}
+
+function oeListHTML(){
+  const favs = OE_SHORTLIST.filter(o=>oeFavorites.has(o.code));
+  const rest = OE_SHORTLIST.filter(o=>!oeFavorites.has(o.code));
+
+  function itemHTML(o){
+    const isFav = oeFavorites.has(o.code);
+    const isMaster = oeMaster === o.code;
+    return `<div class="oe-item${isFav ? " is-fav" : ""}${isMaster ? " is-master" : ""}" data-oecode="${o.code}">
+      ${isMaster ? `<span class="oe-master-tag">★ Master pick</span>` : ""}
+      ${isFav && !isMaster ? `<button class="oe-crown" data-oecode="${o.code}" aria-label="Make master pick" title="Make master pick">👑</button>` : ""}
+      <button class="oe-star" data-oecode="${o.code}" aria-label="Toggle favorite">${isFav ? "★" : "☆"}</button>
+      <div class="oe-name-row"><span class="oe-name">${o.name}</span><span class="oe-code">${o.code}</span></div>
+      <span class="oe-fac">${o.faculty}</span>
+    </div>`;
+  }
+
+  let html = `<div class="oe-list">`;
+  if(favs.length){
+    html += `<div class="oe-fav-divider">★ Your picks</div>`;
+    html += favs.map(itemHTML).join("");
+    html += `<div class="oe-fav-divider">All electives</div>`;
+  }
+  html += rest.map(itemHTML).join("");
+  html += `</div>`;
+  return html;
+}
+
+// Delegate star/crown clicks from any oe-panel/oe-panel-grid on the page,
+// re-rendering whichever view is active so favorites and the master pick
+// update immediately without losing the expanded/collapsed OE card state.
+document.addEventListener("click", (e)=>{
+  const crown = e.target.closest(".oe-crown");
+  if(crown){
+    e.stopPropagation();
+    const code = crown.getAttribute("data-oecode");
+    oeMaster = code;
+    saveOEMaster(oeMaster);
+    renderAgenda();
+    renderGrid();
+    return;
+  }
+  const star = e.target.closest(".oe-star");
+  if(!star) return;
+  e.stopPropagation(); // don't let the click also collapse/expand the parent OE card
+  const code = star.getAttribute("data-oecode");
+  if(oeFavorites.has(code)){
+    oeFavorites.delete(code);
+    if(oeMaster === code){
+      // master was un-favorited — promote the next remaining favorite if any, else clear
+      const remaining = OE_SHORTLIST.find(o=>oeFavorites.has(o.code));
+      oeMaster = remaining ? remaining.code : null;
+      saveOEMaster(oeMaster);
+    }
+  } else {
+    oeFavorites.add(code);
+    if(!oeMaster){
+      // first-ever favorite automatically becomes the master pick
+      oeMaster = code;
+      saveOEMaster(oeMaster);
+    }
+  }
+  saveOEFavorites(oeFavorites);
+  renderAgenda();
+  renderGrid();
+});
 
 // raw cell -> {subj, room, faculty, type}
 function parseCell(raw){
@@ -655,7 +947,8 @@ function parseCell(raw){
   const subj = parts[0];
   const room = parts[1] || "";
   const faculty = parts[2] || "";
-  return {type:"lecture", subj, room, faculty};
+  const isOE = subj === "OE";
+  return {type: isOE ? "oe" : "lecture", subj, room, faculty};
 }
 
 // Day windows (start/end time as printed on each section's sheet)
@@ -706,6 +999,9 @@ let currentSection = "E1";
 let currentView = "day";
 let currentDayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay()-1; // Mon=0..Sun=6
 
+// Tracks which OE cells are expanded, keyed by a unique id per cell instance
+const expandedOE = new Set();
+
 function buildDayNav(){
   const nav = document.getElementById("dayNav");
   nav.innerHTML = "";
@@ -723,6 +1019,7 @@ function slotType(parsed, day, idx){
   if(parsed.type==="none") return "type-free";
   if(parsed.type==="holiday") return "type-holiday";
   if(parsed.type==="break") return "type-break";
+  if(parsed.type==="oe") return "type-oe";
   return classify(day, idx)==="common" ? "type-common" : "type-specific";
 }
 
@@ -788,6 +1085,9 @@ function renderAgenda(){
       }
     }
     if(nowState) cls += " is-now " + nowState;
+
+    const oeKey = `agenda-${currentSection}-${day}-${start}`;
+    if(parsed.type === "oe" && expandedOE.has(oeKey)) cls += " expanded";
     div.className = cls;
 
     const timeDiv = document.createElement("div");
@@ -817,6 +1117,17 @@ function renderAgenda(){
       content.innerHTML = `${flagHtml}<div class="subj-row"><span class="subj">Holiday</span></div>`;
     } else if(parsed.type==="break"){
       content.innerHTML = `${flagHtml}<div class="subj-row"><span class="subj">Break</span></div>${untilHtml}`;
+    } else if(parsed.type==="oe"){
+      const master = oeMaster ? getOEByCode(oeMaster) : null;
+      const headline = master
+        ? `<span class="subj">${master.name}</span><span class="room">${master.code}</span>`
+        : `<span class="subj">Open Elective</span>${parsed.room ? `<span class="room">${parsed.room}</span>` : ""}`;
+      const subMeta = master ? `<div class="meta">${master.faculty}</div>` : "";
+      content.innerHTML = `${flagHtml}<div class="subj-row">${headline}</div>${subMeta}${progressHtml}${untilHtml}<div class="oe-hint"><span class="chev">▶</span> Tap to see all shortlisted subjects</div><div class="oe-panel">${oeListHTML()}</div>`;
+      div.addEventListener("click", (e)=>{
+        if(expandedOE.has(oeKey)) expandedOE.delete(oeKey); else expandedOE.add(oeKey);
+        renderAgenda();
+      });
     } else {
       content.innerHTML = `${flagHtml}<div class="subj-row"><span class="subj">${parsed.subj}</span>${parsed.room ? `<span class="room">${parsed.room}</span>` : ""}</div>${parsed.faculty ? `<div class="meta">${parsed.faculty}</div>` : ""}${progressHtml}${untilHtml}`;
     }
@@ -876,6 +1187,9 @@ function renderGrid(){
       }
       if(nowState) cls += " is-now " + nowState;
 
+      const oeKey = `grid-${currentSection}-${d}-${rowIdx}`;
+      if(parsed.type === "oe" && expandedOE.has(oeKey)) cls += " expanded";
+
       let inner = "";
       if(parsed.type==="none"){
         inner = "";
@@ -883,16 +1197,33 @@ function renderGrid(){
         inner = `<div class="csubj-row"><span class="csubj">Holiday</span></div>`;
       } else if(parsed.type==="break"){
         inner = `<div class="csubj-row"><span class="csubj">Break</span></div>`;
+      } else if(parsed.type==="oe"){
+        const master = oeMaster ? getOEByCode(oeMaster) : null;
+        const cHeadline = master
+          ? `<span class="csubj">${master.name}</span><span class="croom">${master.code}</span>`
+          : `<span class="csubj">Open Elective</span>${parsed.room ? `<span class="croom">${parsed.room}</span>` : ""}`;
+        const cMeta = master ? `<div class="cmeta">${master.faculty}</div>` : `<div class="cmeta">▶ tap for subjects</div>`;
+        inner = `<div class="csubj-row">${cHeadline}</div>${cMeta}<div class="oe-panel-grid">${oeListHTML()}</div>`;
       } else {
         inner = `<div class="csubj-row"><span class="csubj">${parsed.subj}</span>${parsed.room ? `<span class="croom">${parsed.room}</span>` : ""}</div>${parsed.faculty ? `<div class="cmeta">${parsed.faculty}</div>` : ""}`;
       }
       const rowspanAttr = span > 1 ? ` rowspan="${span}"` : "";
-      html += `<td class="${cls}"${rowspanAttr}><div class="cell-inner">${inner}</div></td>`;
+      const clickAttr = parsed.type === "oe" ? ` data-oekey="${oeKey}"` : "";
+      html += `<td class="${cls}"${rowspanAttr}${clickAttr}><div class="cell-inner">${inner}</div></td>`;
     });
     html += "</tr>";
   });
   html += "</tbody>";
   table.innerHTML = html;
+
+  // wire up click handlers for OE cells in the grid
+  table.querySelectorAll('td[data-oekey]').forEach(td=>{
+    td.addEventListener("click", (e)=>{
+      const key = td.getAttribute("data-oekey");
+      if(expandedOE.has(key)) expandedOE.delete(key); else expandedOE.add(key);
+      renderGrid();
+    });
+  });
 }
 
 function buildFaculty(){
@@ -1174,18 +1505,20 @@ function checkClassNotifications(){
 
   blocks.forEach(({raw, start, end})=>{
     const parsed = parseCell(raw);
-    if(parsed.type !== "lecture") return; // only notify for actual classes, not breaks/holidays/free
+    if(parsed.type !== "lecture" && parsed.type !== "oe") return; // only notify for actual classes, not breaks/holidays/free
     const [startH] = TIME_RANGES[start];
     const blockStartMin = startH*60;
 
     const fiveBeforeKey = `${day}-${currentSection}-${start}-pre5`;
     const startKey = `${day}-${currentSection}-${start}-start`;
 
+    const subjLabel = parsed.type === "oe" ? (oeMaster ? getOEByCode(oeMaster).name : "Open Elective") : parsed.subj;
+
     // 5-minutes-before window (fires once, checked on a <=30s poll so it
     // reliably lands within the 5:00-4:30-before window)
     if(nowMinutes === blockStartMin - 5 && !alreadyFired(fiveBeforeKey)){
       showClassNotification(
-        `Starting soon: ${parsed.subj}`,
+        `Starting soon: ${subjLabel}`,
         `${parsed.room ? parsed.room + " · " : ""}${fmt12(startH,0)} · Section ${currentSection}`,
         fiveBeforeKey
       );
@@ -1195,7 +1528,7 @@ function checkClassNotifications(){
     // exact start
     if(nowMinutes === blockStartMin && !alreadyFired(startKey)){
       showClassNotification(
-        `Now: ${parsed.subj}`,
+        `Now: ${subjLabel}`,
         `${parsed.room ? parsed.room + " · " : ""}Started ${fmt12(startH,0)} · Section ${currentSection}`,
         startKey
       );
