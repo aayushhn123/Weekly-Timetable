@@ -96,6 +96,79 @@
     color:var(--paper);
   }
 
+  /* ===== Now banner ===== */
+  #nowBanner{
+    position:relative;
+    border-radius:14px;
+    padding:16px 18px;
+    margin-bottom:18px;
+    color:var(--white);
+    overflow:hidden;
+    box-shadow:0 4px 14px rgba(0,0,0,0.12);
+    transition:background .25s ease;
+  }
+  #nowBanner.state-live{ background: linear-gradient(135deg, var(--accent), #2c5349); }
+  #nowBanner.state-break{ background: linear-gradient(135deg, #8f8674, var(--break)); }
+  #nowBanner.state-upcoming{ background: linear-gradient(135deg, #4a4038, #6b5d4f); }
+  #nowBanner.state-holiday{ background: linear-gradient(135deg, var(--holiday), #8f4a40); }
+  #nowBanner.state-done{ background: linear-gradient(135deg, #3a3f3d, #232826); }
+
+  #nowBanner .now-eyebrow{
+    font-family:'Courier New',monospace;
+    font-size:10.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    opacity:.85;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  #nowBanner .pulse-dot{
+    width:7px;height:7px;border-radius:50%;
+    background:#7ee0a8;
+    box-shadow:0 0 0 0 rgba(126,224,168,.6);
+    animation:pulse 1.8s infinite;
+    flex:0 0 auto;
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(126,224,168,.55); }
+    70%{ box-shadow:0 0 0 8px rgba(126,224,168,0); }
+    100%{ box-shadow:0 0 0 0 rgba(126,224,168,0); }
+  }
+  #nowBanner .now-subj{
+    font-size:clamp(1.25rem,5vw,1.7rem);
+    font-weight:800;
+    margin-top:4px;
+    line-height:1.15;
+  }
+  #nowBanner .now-meta{
+    font-family:'Courier New',monospace;
+    font-size:13px;
+    font-weight:700;
+    opacity:.92;
+    margin-top:5px;
+  }
+  #nowBanner .now-time{
+    font-family:'Courier New',monospace;
+    font-size:12px;
+    opacity:.8;
+    margin-top:8px;
+  }
+  #nowBanner .now-progress-track{
+    margin-top:10px;
+    height:4px;
+    border-radius:3px;
+    background:rgba(255,255,255,0.22);
+    overflow:hidden;
+  }
+  #nowBanner .now-progress-fill{
+    height:100%;
+    background:#fff;
+    border-radius:3px;
+    width:0%;
+    transition:width .5s linear;
+  }
+
   /* Day pills for mobile nav */
   .daynav{
     display:flex;
@@ -162,6 +235,10 @@
     background:var(--white);
     overflow:hidden;
     box-shadow:var(--shadow);
+  }
+  .slot.is-now{
+    border:2px solid var(--accent);
+    box-shadow:0 0 0 3px rgba(58,107,94,0.15);
   }
   .slot .time{
     flex:0 0 76px;
@@ -275,6 +352,10 @@
   td.type-free .cell-inner .csubj{color:#bbb;}
   td.type-extra{border-left:4px solid var(--accent3);}
   td.today-col{background:#fbf6ea;}
+  td.is-now{
+    outline:2px solid var(--accent);
+    outline-offset:-2px;
+  }
 
   @media (min-width: 860px){
     .daynav{display:none;}
@@ -399,6 +480,17 @@
   </div>
   <div id="offlineTag">⏻ Offline — showing saved data</div>
 
+  <!-- LIVE "NOW" BANNER -->
+  <div id="nowBanner">
+    <div class="now-eyebrow"><span class="pulse-dot" id="nowDot"></span><span id="nowEyebrow">Right now</span></div>
+    <div class="now-subj" id="nowSubj">—</div>
+    <div class="now-meta" id="nowMeta"></div>
+    <div class="now-time" id="nowTime"></div>
+    <div class="now-progress-track" id="nowProgressTrack" style="display:none;">
+      <div class="now-progress-fill" id="nowProgressFill"></div>
+    </div>
+  </div>
+
   <div class="toggle-row">
     <div class="toggle" id="sectionToggle">
       <button data-section="E1" class="active">Section E1</button>
@@ -450,6 +542,10 @@
 <script>
 const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 const TIMES = ["8:00 - 9:00","9:00 - 10:00","10:00 - 11:00","11:00 - 12:00","12:00 - 1:00","1:00 - 2:00","2:00 - 3:00","3:00 - 4:00","4:00 - 5:00","5:00 - 6:00"];
+// Parallel array of [startHour24, endHour24] for each TIMES slot, used for live "now" detection.
+const TIME_RANGES = [
+  [8,9],[9,10],[10,11],[11,12],[12,13],[13,14],[14,15],[15,16],[16,17],[17,18]
+];
 
 const FACULTY = [
   ["NNDL","Neural Networks & Deep Learning","Prof. Shweta Mishra"],
@@ -575,6 +671,8 @@ function renderAgenda(){
   const agenda = document.getElementById("agenda");
   agenda.innerHTML = "";
 
+  const nowInfo = (currentSection === getLiveContext().section && currentDayIdx === todayIdx) ? getLiveContext() : null;
+
   const blocks = mergeBlocks(arr);
   let any = false;
   blocks.forEach(({raw, start, end})=>{
@@ -582,7 +680,9 @@ function renderAgenda(){
     if(parsed.type==="none") return;
     any = true;
     const div = document.createElement("div");
-    div.className = "slot " + slotType(parsed, day, start);
+    let cls = "slot " + slotType(parsed, day, start);
+    if(nowInfo && nowInfo.activeBlockStart === start) cls += " is-now";
+    div.className = cls;
     const timeDiv = document.createElement("div");
     timeDiv.className = "time";
     const {startLabel, endLabel} = timeRangeParts(start, end);
@@ -609,6 +709,7 @@ function renderAgenda(){
 function renderGrid(){
   const table = document.getElementById("gridTable");
   const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay()-1;
+  const live = getLiveContext();
   let html = "<thead><tr><th class='timecol'>Time</th>";
   DAYS.forEach((d,i)=>{
     html += `<th${i===todayIdx ? " style='background:#3a6b5e'" : ""}>${d}</th>`;
@@ -640,7 +741,10 @@ function renderGrid(){
       const raw = block.raw;
       const span = block.end - block.start + 1;
       const parsed = parseCell(raw);
-      const cls = slotType(parsed, d, rowIdx) + (colIdx===todayIdx ? " today-col" : "");
+      let cls = slotType(parsed, d, rowIdx) + (colIdx===todayIdx ? " today-col" : "");
+      if(live && live.section === currentSection && colIdx === todayIdx && d === DAYS[todayIdx] && live.activeBlockStart === rowIdx){
+        cls += " is-now";
+      }
       let inner = "";
       if(parsed.type==="none"){
         inner = "";
@@ -687,6 +791,7 @@ function render(){
   renderAgenda();
   renderGrid();
   applyViewMode();
+  renderNowBanner();
 }
 
 document.getElementById("sectionToggle").addEventListener("click", (e)=>{
@@ -709,6 +814,157 @@ document.getElementById("viewToggle").addEventListener("click", (e)=>{
 
 buildFaculty();
 render();
+
+/* ===================== LIVE "NOW" BANNER ===================== */
+
+function fmt12(h, m){
+  const period = h >= 12 ? "PM" : "AM";
+  let h12 = h % 12; if(h12 === 0) h12 = 12;
+  return `${h12}:${String(m).padStart(2,"0")} ${period}`;
+}
+
+// Figures out, for the CURRENTLY SELECTED SECTION and TODAY, what's happening right now
+// (independent of which day/view the user is currently browsing) so the banner always
+// reflects real device time. Returns null-safe object.
+function getLiveContext(){
+  const now = new Date();
+  const todayIdx = now.getDay() === 0 ? 6 : now.getDay()-1; // 0=Mon..6=Sun
+  const section = currentSection;
+  const day = DAYS[todayIdx];
+
+  if(todayIdx > 6 || !DATA[section][day]){
+    return { section, day, todayIdx, status:"holiday" };
+  }
+
+  const win = WINDOWS[section][day];
+  if(win === "HOLIDAY"){
+    return { section, day, todayIdx, status:"holiday" };
+  }
+
+  const arr = DATA[section][day];
+  const blocks = mergeBlocks(arr);
+  const nowMinutes = now.getHours()*60 + now.getMinutes();
+
+  // find block whose time range contains "now"
+  for(const {raw, start, end} of blocks){
+    const parsed = parseCell(raw);
+    if(parsed.type === "none") continue;
+    const [startH] = TIME_RANGES[start];
+    const [, endH] = TIME_RANGES[end];
+    const blockStartMin = startH*60;
+    const blockEndMin = endH*60;
+    if(nowMinutes >= blockStartMin && nowMinutes < blockEndMin){
+      const pct = Math.min(100, Math.max(0, ((nowMinutes - blockStartMin) / (blockEndMin - blockStartMin)) * 100));
+      return {
+        section, day, todayIdx,
+        status: parsed.type === "break" ? "break" : "live",
+        parsed, activeBlockStart:start, activeBlockEnd:end,
+        startH, endH, pct
+      };
+    }
+  }
+
+  // no current block — find the NEXT upcoming block today
+  let next = null;
+  for(const {raw, start, end} of blocks){
+    const parsed = parseCell(raw);
+    if(parsed.type === "none" || parsed.type === "break") continue;
+    const [startH] = TIME_RANGES[start];
+    const blockStartMin = startH*60;
+    if(blockStartMin > nowMinutes){ next = {raw, start, end, parsed, startH}; break; }
+  }
+  if(next){
+    return { section, day, todayIdx, status:"upcoming", parsed:next.parsed, activeBlockStart:next.start, activeBlockEnd:next.end, startH:next.startH };
+  }
+
+  return { section, day, todayIdx, status:"done" };
+}
+
+function renderNowBanner(){
+  const el = document.getElementById("nowBanner");
+  const dot = document.getElementById("nowDot");
+  const eyebrow = document.getElementById("nowEyebrow");
+  const subj = document.getElementById("nowSubj");
+  const meta = document.getElementById("nowMeta");
+  const timeEl = document.getElementById("nowTime");
+  const track = document.getElementById("nowProgressTrack");
+  const fill = document.getElementById("nowProgressFill");
+
+  const ctx = getLiveContext();
+  el.className = ""; // reset state classes
+  dot.style.display = "";
+  track.style.display = "none";
+
+  const now = new Date();
+  const nowLabel = fmt12(now.getHours(), now.getMinutes());
+
+  if(ctx.status === "holiday"){
+    el.classList.add("state-holiday");
+    dot.style.display = "none";
+    eyebrow.textContent = `Today · ${ctx.day}`;
+    subj.textContent = "No classes — holiday";
+    meta.textContent = ctx.section === currentSection ? `Section ${ctx.section}` : "";
+    timeEl.textContent = `As of ${nowLabel}`;
+    return;
+  }
+
+  if(ctx.status === "live"){
+    const isBreak = ctx.status === "break";
+    el.classList.add("state-live");
+    eyebrow.textContent = "Happening now";
+    if(ctx.parsed.type === "break"){
+      el.classList.remove("state-live"); el.classList.add("state-break");
+      subj.textContent = "Break";
+      meta.textContent = "";
+    } else {
+      subj.textContent = ctx.parsed.subj;
+      meta.textContent = `${ctx.parsed.room}${ctx.parsed.faculty ? " · " + ctx.parsed.faculty : ""} · Section ${ctx.section}`;
+    }
+    const endLabel = fmt12(ctx.endH, 0);
+    timeEl.textContent = `Until ${endLabel}`;
+    track.style.display = "block";
+    fill.style.width = ctx.pct + "%";
+    return;
+  }
+
+  if(ctx.status === "break"){
+    el.classList.add("state-break");
+    dot.style.display = "none";
+    eyebrow.textContent = "On break";
+    subj.textContent = "Break";
+    meta.textContent = `Section ${ctx.section}`;
+    const endLabel = fmt12(ctx.endH, 0);
+    timeEl.textContent = `Until ${endLabel}`;
+    return;
+  }
+
+  if(ctx.status === "upcoming"){
+    el.classList.add("state-upcoming");
+    dot.style.display = "none";
+    eyebrow.textContent = "Up next";
+    subj.textContent = ctx.parsed.subj;
+    meta.textContent = `${ctx.parsed.room}${ctx.parsed.faculty ? " · " + ctx.parsed.faculty : ""} · Section ${ctx.section}`;
+    const startLabel = fmt12(ctx.startH, 0);
+    timeEl.textContent = `Starts ${startLabel}`;
+    return;
+  }
+
+  // done for the day
+  el.classList.add("state-done");
+  dot.style.display = "none";
+  eyebrow.textContent = `Today · ${ctx.day}`;
+  subj.textContent = "No more classes today";
+  meta.textContent = `Section ${ctx.section}`;
+  timeEl.textContent = `As of ${nowLabel}`;
+}
+
+// Refresh the banner (and re-highlight the "now" slot if visible) every 30s
+setInterval(()=>{
+  renderNowBanner();
+  // Only need to re-render the visible view's "is-now" highlight, cheap enough to just re-render both
+  renderAgenda();
+  renderGrid();
+}, 30000);
 
 /* ===================== PWA: install + offline support ===================== */
 
