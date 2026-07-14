@@ -31,14 +31,24 @@
     --accent:#3a6b5e;      /* deep pine */
     --accent2:#c26b3e;     /* rust/clay for class-specific */
     --accent3:#8a6d3b;     /* ochre for extra */
+    --oe:#6b5b95;          /* violet for open electives */
+    --oe-soft: rgba(107,91,149,0.14);
+    --gold:#a8842f;
+    --gold-soft:#f6e6b8;
     --break:#b8b0a0;
     --holiday:#a85c50;
     --free:#eae6da;
     --white:#fffdf9;
     --shadow: 0 1px 0 rgba(0,0,0,0.04);
+    --shadow-card: 0 2px 10px rgba(28,35,33,0.06);
+    --shadow-pop: 0 10px 30px rgba(28,35,33,0.16);
     --radius: 10px;
+    --radius-lg: 14px;
+    --ease: cubic-bezier(.4,0,.2,1);
+    --ease-spring: cubic-bezier(.34,1.56,.64,1);
   }
   *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
   html,body{margin:0;padding:0;}
   body{
     background:var(--paper);
@@ -47,27 +57,45 @@
     -webkit-font-smoothing:antialiased;
     min-height:100vh;
   }
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration:0.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:0.01ms !important;
+    }
+  }
   .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px;}
+  @media (min-width:1280px){
+    .wrap{max-width:1240px;padding:32px 24px 72px;}
+  }
+  @media (max-width:380px){
+    .wrap{padding:14px 10px 44px;}
+  }
 
   header.top{
     display:flex;flex-direction:column;gap:4px;
     padding-bottom:16px;margin-bottom:18px;
     border-bottom:2px solid var(--ink);
+    animation:fadeSlideIn .5s var(--ease);
+  }
+  @keyframes fadeSlideIn{
+    from{opacity:0; transform:translateY(-6px);}
+    to{opacity:1; transform:translateY(0);}
   }
   .eyebrow{
     font-family: 'Courier New', monospace;
-    font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    font-size:clamp(10px,2.6vw,11px);letter-spacing:.14em;text-transform:uppercase;
     color:var(--accent);font-weight:700;
   }
   h1{
-    font-size:clamp(1.5rem,4vw,2.1rem);
+    font-size:clamp(1.4rem,5vw,2.2rem);
     margin:2px 0 0;
     font-weight:600;
     letter-spacing:-0.01em;
   }
   .sub{
     font-family:'Courier New',monospace;
-    font-size:12.5px;color:#555; margin-top:4px;
+    font-size:12px;color:#555; margin-top:4px;
   }
 
   /* Section toggle */
@@ -77,6 +105,7 @@
     border-radius:999px;
     overflow:hidden;
     width:max-content;
+    max-width:100%;
     margin:16px 0 20px;
     background:var(--white);
   }
@@ -89,11 +118,16 @@
     background:transparent;
     color:var(--ink);
     cursor:pointer;
-    transition:background .15s ease, color .15s ease;
+    transition:background .18s var(--ease), color .18s var(--ease), transform .12s var(--ease);
+    white-space:nowrap;
   }
+  .toggle button:active{transform:scale(.96);}
   .toggle button.active{
     background:var(--ink);
     color:var(--paper);
+  }
+  @media (max-width:400px){
+    .toggle button{padding:8px 15px; font-size:13px;}
   }
 
   /* Day pills for mobile nav */
@@ -119,11 +153,14 @@
     color:var(--ink);
     cursor:pointer;
     white-space:nowrap;
+    transition:background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease), transform .12s var(--ease);
   }
+  .daynav button:active{transform:scale(.94);}
   .daynav button.active{
     background:var(--accent);
     border-color:var(--accent);
     color:var(--white);
+    transform:scale(1.04);
   }
   .daynav button[disabled]{
     opacity:.4;
@@ -173,8 +210,26 @@
     border-radius:var(--radius);
     background:var(--white);
     overflow:hidden;
-    box-shadow:var(--shadow);
-    transition:background .3s ease, border-color .3s ease, box-shadow .3s ease;
+    box-shadow:var(--shadow-card);
+    transition:background .3s var(--ease), border-color .3s var(--ease), box-shadow .3s var(--ease), transform .15s var(--ease);
+    animation:slotIn .38s var(--ease) backwards;
+  }
+  @keyframes slotIn{
+    from{opacity:0; transform:translateY(8px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .slot:nth-child(1){animation-delay:.02s;}
+  .slot:nth-child(2){animation-delay:.05s;}
+  .slot:nth-child(3){animation-delay:.08s;}
+  .slot:nth-child(4){animation-delay:.11s;}
+  .slot:nth-child(5){animation-delay:.14s;}
+  .slot:nth-child(n+6){animation-delay:.16s;}
+  @media (max-width:400px){
+    .slot .subj{font-size:16px;}
+    .slot .room{font-size:14px; padding:2px 6px;}
+    .slot .time{flex:0 0 66px; padding:8px 4px;}
+    .slot .time .t-start, .slot .time .t-end{font-size:13px;}
+    .slot .content{padding:10px 11px;}
   }
 
   /* ===== Live "now" states applied directly to the matching day-view slot ===== */
@@ -305,122 +360,162 @@
   .slot.type-extra{border-left:5px solid var(--accent3);}
 
   /* Open Elective expandable */
-  .slot.type-oe{border-left:5px solid #6b5b95; cursor:pointer;}
+  .slot.type-oe{border-left:5px solid var(--oe); cursor:pointer;}
   .slot.type-oe .content{position:relative;}
+  .slot.type-oe:active{transform:scale(.995);}
   .oe-hint{
     font-family:'Courier New',monospace;
     font-size:12px;
-    color:#6b5b95;
+    color:var(--oe);
     margin-top:6px;
     font-weight:800;
     display:flex;
     align-items:center;
-    gap:4px;
+    gap:5px;
   }
   .slot.is-now .oe-hint{
     color:#e8e2f7;
   }
-  .slot.is-now .oe-panel{
+  .slot.is-now .oe-panel-inner{
     border-top-color:rgba(255,255,255,0.3);
   }
   .oe-hint .chev{
     display:inline-block;
-    transition:transform .2s ease;
+    transition:transform .25s var(--ease-spring);
   }
   .slot.type-oe.expanded .oe-hint .chev{transform:rotate(90deg);}
+
+  /* Expand/collapse uses grid-template-rows trick for a smooth height animation */
+  .oe-panel-wrap{
+    display:grid;
+    grid-template-rows:0fr;
+    transition:grid-template-rows .32s var(--ease);
+  }
+  .slot.type-oe.expanded .oe-panel-wrap{grid-template-rows:1fr;}
   .oe-panel{
-    display:none;
+    overflow:hidden;
+    min-height:0;
+  }
+  .oe-panel-inner{
     margin-top:10px;
     border-top:1px dashed var(--line);
-    padding-top:10px;
+    padding:12px 12px 4px;
     background:var(--white);
     border-radius:8px;
-    padding:10px;
-    margin-left:-14px;
-    margin-right:-14px;
-    padding-left:14px;
-    padding-right:14px;
   }
-  .slot.type-oe.expanded .oe-panel{display:block;}
+
   .oe-list{
     display:flex;
     flex-direction:column;
-    gap:6px;
+    gap:8px;
+    max-height:min(52vh, 420px);
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding:2px 10px 10px 2px;
+    margin-right:-6px;
+    scrollbar-width:thin;
+    scrollbar-gutter:stable;
   }
+  .oe-list::-webkit-scrollbar{width:6px;}
+  .oe-list::-webkit-scrollbar-track{background:transparent;}
+  .oe-list::-webkit-scrollbar-thumb{background:var(--line); border-radius:3px;}
+  .oe-list::-webkit-scrollbar-thumb:hover{background:#c2baa4;}
+
   .oe-item{
     display:flex;
     flex-direction:column;
-    gap:4px;
+    gap:6px;
     font-size:14px;
-    padding:9px 10px;
+    padding:10px 11px;
     background:var(--paper2);
-    border-radius:6px;
+    border-radius:8px;
     border:1px solid var(--line);
-    position:relative;
+    transition:background .2s var(--ease), border-color .2s var(--ease), transform .12s var(--ease);
   }
+  .oe-item:active{transform:scale(.98);}
   .oe-item.is-fav{
-    background:#fdf6e8;
-    border-color:#c9a34a;
-    box-shadow:0 0 0 1px rgba(201,163,74,0.25);
+    background:var(--gold-soft);
+    border-color:#d3ac52;
   }
   .oe-item.is-master{
-    background:#fbeecb;
-    border-color:#a8842f;
-    box-shadow:0 0 0 2px rgba(168,132,47,0.35);
+    background:linear-gradient(135deg,#fbeecb,#f6e2a8);
+    border-color:var(--gold);
+    box-shadow:0 0 0 2px rgba(168,132,47,0.25);
   }
   .oe-master-tag{
-    display:inline-block;
+    display:inline-flex;
+    align-items:center;
+    gap:3px;
     font-family:'Courier New',monospace;
     font-size:10px;
     font-weight:800;
-    letter-spacing:.06em;
+    letter-spacing:.05em;
     color:#5c4a17;
     background:#f0d68a;
     padding:2px 7px;
     border-radius:5px;
-    margin-bottom:4px;
     width:max-content;
   }
-  .oe-crown{
-    position:absolute;
-    top:4px;
-    right:38px;
-    width:30px;
-    height:30px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border:none;
-    background:transparent;
-    cursor:pointer;
-    font-size:16px;
-    line-height:1;
-    opacity:.55;
-    padding:0;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .oe-crown:hover{opacity:1;}
   .oe-master-badge{
     font-family:'Courier New',monospace;
     font-size:10px;
     font-weight:800;
-    letter-spacing:.06em;
+    letter-spacing:.05em;
     color:#5c4a17;
     background:#f0d68a;
     padding:2px 7px;
     border-radius:5px;
   }
-  .oe-item .oe-name-row{
+
+  /* Top row: name+code on the left, star control on the right — no overlap, no absolute positioning */
+  .oe-top-row{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .oe-name-block{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    min-width:0;
+  }
+  .oe-name-row{
     display:flex;
     align-items:center;
     flex-wrap:wrap;
     gap:6px;
-    padding-right:30px;
   }
-  .oe-star{
-    position:absolute;
-    top:4px;
-    right:4px;
+  .oe-name{
+    font-weight:800;
+    color:var(--ink);
+    line-height:1.3;
+    font-size:14.5px;
+  }
+  .oe-code{
+    font-family:'Courier New',monospace;
+    font-weight:800;
+    font-size:10.5px;
+    color:#4a3d69;
+    background:rgba(107,91,149,0.16);
+    padding:2px 6px;
+    border-radius:4px;
+    white-space:nowrap;
+  }
+  .oe-fac{
+    font-family:'Courier New',monospace;
+    font-size:11.5px;
+    font-weight:700;
+    color:#3a3a3a;
+  }
+
+  .oe-controls{
+    display:flex;
+    align-items:center;
+    gap:2px;
+    flex:0 0 auto;
+  }
+  .oe-icon-btn{
     width:34px;
     height:34px;
     display:flex;
@@ -429,61 +524,47 @@
     border:none;
     background:transparent;
     cursor:pointer;
-    font-size:20px;
+    font-size:17px;
     line-height:1;
-    color:#bbb;
+    color:#c2b8a3;
     padding:0;
+    border-radius:8px;
+    transition:color .15s var(--ease), background .15s var(--ease), transform .1s var(--ease);
     -webkit-tap-highlight-color:transparent;
   }
-  .oe-item.is-fav .oe-star{color:#c9a34a;}
+  .oe-icon-btn:active{transform:scale(.85);}
+  .oe-star.is-active{color:var(--gold);}
+  .oe-crown-btn{font-size:15px;}
+  .oe-crown-btn.is-active{color:var(--gold);}
+  .oe-crown-btn:not(.is-visible){display:none;}
+
   .oe-fav-divider{
     font-family:'Courier New',monospace;
-    font-size:10.5px;
+    font-size:10px;
     text-transform:uppercase;
     letter-spacing:.1em;
     font-weight:800;
     color:#8a7440;
-    margin:2px 0 2px;
-    padding-top:6px;
+    margin:4px 0 0;
+    padding-top:8px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .oe-fav-divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
   }
   .oe-fav-divider:first-child{padding-top:0;}
-  .oe-item .oe-name{
-    font-weight:800;
-    color:var(--ink);
-    line-height:1.3;
-  }
-  .oe-item .oe-code{
+  .oe-empty-hint{
     font-family:'Courier New',monospace;
-    font-weight:800;
-    font-size:11px;
-    color:#4a3d69;
-    background:rgba(107,91,149,0.18);
-    padding:2px 6px;
-    border-radius:4px;
-    white-space:nowrap;
+    font-size:11.5px;
+    color:#8a8272;
+    text-align:center;
+    padding:6px 0 2px;
   }
-  .oe-item .oe-fac{
-    font-family:'Courier New',monospace;
-    font-size:12px;
-    font-weight:700;
-    color:#3a3a3a;
-  }
-  td.type-oe{cursor:pointer;}
-  td.type-oe .cell-inner{position:relative;}
-  .oe-panel-grid{
-    display:none;
-    position:absolute;
-    top:calc(100% + 4px);
-    left:0;
-    z-index:10;
-    background:var(--white);
-    border:1.5px solid #6b5b95;
-    border-radius:8px;
-    padding:10px;
-    width:260px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.15);
-  }
-  td.type-oe.expanded .oe-panel-grid{display:block;}
 
   .empty-note{
     font-family:'Courier New',monospace;
@@ -550,6 +631,10 @@
     display:flex;flex-direction:column;justify-content:center;gap:4px;
     box-sizing:border-box;
   }
+  @media (min-width:1280px){
+    .cell-inner{min-height:72px; padding:10px 12px;}
+    .cell-inner .csubj{font-size:15px;}
+  }
   .cell-inner .csubj-row{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;}
   .cell-inner .csubj{font-weight:800;font-size:14px;}
   .cell-inner .croom{
@@ -569,7 +654,30 @@
   td.type-holiday{border-left:4px solid var(--holiday); background:#f4e9e7;}
   td.type-free .cell-inner .csubj{color:#bbb;}
   td.type-extra{border-left:4px solid var(--accent3);}
-  td.type-oe{border-left:4px solid #6b5b95;}
+  td.type-oe{border-left:4px solid var(--oe); cursor:pointer;}
+  td.type-oe .cell-inner{position:relative; transition:background .15s var(--ease);}
+  td.type-oe:hover .cell-inner{background:var(--oe-soft);}
+  .oe-panel-grid{
+    display:none;
+    position:absolute;
+    top:calc(100% + 6px);
+    left:0;
+    z-index:20;
+    background:var(--white);
+    border:1.5px solid var(--oe);
+    border-radius:10px;
+    padding:10px;
+    width:290px;
+    max-width:min(80vw, 340px);
+    box-shadow:var(--shadow-pop);
+    animation:popIn .18s var(--ease-spring);
+  }
+  @keyframes popIn{
+    from{opacity:0; transform:translateY(-6px) scale(.97);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+  td.type-oe.expanded .oe-panel-grid{display:block;}
+  .oe-panel-grid .oe-list{max-height:320px;}
   td.today-col{background:#fbf6ea;}
   td.is-now{
     outline:2px solid var(--accent);
@@ -607,6 +715,14 @@
     border:1px solid var(--line);
     border-radius:var(--radius);
     padding:16px 18px;
+    box-shadow:var(--shadow-card);
+    transition:box-shadow .2s var(--ease);
+  }
+  @media (min-width:860px){
+    .card:hover{box-shadow:var(--shadow-pop);}
+  }
+  @media (max-width:400px){
+    .card{padding:13px 14px;}
   }
   .card h3{
     margin:0 0 10px;
@@ -627,7 +743,7 @@
   .sw-extra{background:var(--accent3);}
   .sw-holiday{background:var(--holiday);}
   .sw-free{background:#ccc;}
-  .sw-oe{background:#6b5b95;}
+  .sw-oe{background:var(--oe);}
 
   table.faculty{width:100%;border-collapse:collapse;font-size:12.5px;}
   table.faculty th{
@@ -878,19 +994,27 @@ function oeListHTML(){
     const isFav = oeFavorites.has(o.code);
     const isMaster = oeMaster === o.code;
     return `<div class="oe-item${isFav ? " is-fav" : ""}${isMaster ? " is-master" : ""}" data-oecode="${o.code}">
-      ${isMaster ? `<span class="oe-master-tag">★ Master pick</span>` : ""}
-      ${isFav && !isMaster ? `<button class="oe-crown" data-oecode="${o.code}" aria-label="Make master pick" title="Make master pick">👑</button>` : ""}
-      <button class="oe-star" data-oecode="${o.code}" aria-label="Toggle favorite">${isFav ? "★" : "☆"}</button>
-      <div class="oe-name-row"><span class="oe-name">${o.name}</span><span class="oe-code">${o.code}</span></div>
-      <span class="oe-fac">${o.faculty}</span>
+      <div class="oe-top-row">
+        <div class="oe-name-block">
+          ${isMaster ? `<span class="oe-master-tag">★ Master pick</span>` : ""}
+          <div class="oe-name-row"><span class="oe-name">${o.name}</span><span class="oe-code">${o.code}</span></div>
+          <span class="oe-fac">${o.faculty}</span>
+        </div>
+        <div class="oe-controls">
+          <button class="oe-icon-btn oe-crown-btn${isFav && !isMaster ? " is-visible" : ""}" data-oecode="${o.code}" aria-label="Make master pick" title="Make master pick">👑</button>
+          <button class="oe-icon-btn oe-star${isFav ? " is-active" : ""}" data-oecode="${o.code}" aria-label="Toggle favorite">${isFav ? "★" : "☆"}</button>
+        </div>
+      </div>
     </div>`;
   }
 
   let html = `<div class="oe-list">`;
   if(favs.length){
-    html += `<div class="oe-fav-divider">★ Your picks</div>`;
+    html += `<div class="oe-fav-divider">Your picks</div>`;
     html += favs.map(itemHTML).join("");
     html += `<div class="oe-fav-divider">All electives</div>`;
+  } else {
+    html += `<div class="oe-empty-hint">☆ Tap a star to save your picks</div>`;
   }
   html += rest.map(itemHTML).join("");
   html += `</div>`;
@@ -901,7 +1025,7 @@ function oeListHTML(){
 // re-rendering whichever view is active so favorites and the master pick
 // update immediately without losing the expanded/collapsed OE card state.
 document.addEventListener("click", (e)=>{
-  const crown = e.target.closest(".oe-crown");
+  const crown = e.target.closest(".oe-crown-btn");
   if(crown){
     e.stopPropagation();
     const code = crown.getAttribute("data-oecode");
@@ -1123,7 +1247,7 @@ function renderAgenda(){
         ? `<span class="subj">${master.name}</span><span class="room">${master.code}</span>`
         : `<span class="subj">Open Elective</span>${parsed.room ? `<span class="room">${parsed.room}</span>` : ""}`;
       const subMeta = master ? `<div class="meta">${master.faculty}</div>` : "";
-      content.innerHTML = `${flagHtml}<div class="subj-row">${headline}</div>${subMeta}${progressHtml}${untilHtml}<div class="oe-hint"><span class="chev">▶</span> Tap to see all shortlisted subjects</div><div class="oe-panel">${oeListHTML()}</div>`;
+      content.innerHTML = `${flagHtml}<div class="subj-row">${headline}</div>${subMeta}${progressHtml}${untilHtml}<div class="oe-hint"><span class="chev">▶</span> Tap to see all shortlisted subjects</div><div class="oe-panel-wrap"><div class="oe-panel"><div class="oe-panel-inner">${oeListHTML()}</div></div></div>`;
       div.addEventListener("click", (e)=>{
         if(expandedOE.has(oeKey)) expandedOE.delete(oeKey); else expandedOE.add(oeKey);
         renderAgenda();
